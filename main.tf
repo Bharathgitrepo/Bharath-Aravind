@@ -1,8 +1,15 @@
 provider "aws" {
-  region = "us-east-1"   # Change to your preferred region
+  region = "ap-south-1"
 }
 
-resource "aws_s3_bucket" "my_bucket" {
-  bucket = "bharath-simple-s3-demo-8897618252"   # Must be globally unique
+resource "aws_s3_bucket" "demo" {
+  bucket = "bharath-demo-s3-bucket-24012025"
+}
 
+resource "aws_s3_bucket_versioning" "versioning" {
+  bucket = aws_s3_bucket.demo.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
 }
