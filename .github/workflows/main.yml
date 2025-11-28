@@ -1,26 +1,52 @@
-
 name: Deploy
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  deploy:
+  terraform:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      # Checkout Code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials using OIDC
+      # Configure AWS Credentials using OIDC
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::288316011796:role/Github_Role_Created_by_Bharath
+          role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/<ROLE_NAME>
           aws-region: ap-south-1
 
-      - name: Test AWS access
-        run: aws sts get-caller-identity
+      # Install Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # Terraform Init
+      - name: Terraform Init
+        run: terraform init
+
+      # Terraform Format
+      - name: Terraform Format
+        run: terraform fmt -check
+
+      # Terraform Validate
+      - name: Terraform Validate
+        run: terraform validate
+
+      # Terraform Plan
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      # Terraform Apply (only on main branch)
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve tfplan
