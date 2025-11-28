@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -11,30 +12,30 @@ permissions:
   contents: read
 
 jobs:
-  terraform:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout Code
+      # Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Configure AWS Credentials using OIDC
-      - name: Configure AWS Credentials
+      # Authenticate to AWS using OIDC
+      - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/<ROLE_NAME>
+          role-to-assume: arn:aws:iam::288316011796:role/Github_Role_Created_by_Bharath
           aws-region: ap-south-1
 
       # Install Terraform
-      - name: Setup Terraform
+      - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
 
       # Terraform Init
       - name: Terraform Init
         run: terraform init
 
-      # Terraform Format
+      # Terraform Format Check
       - name: Terraform Format
         run: terraform fmt -check
 
@@ -44,9 +45,9 @@ jobs:
 
       # Terraform Plan
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
+        run: terraform plan -input=false
 
-      # Terraform Apply (only on main branch)
+      # Terraform Apply (only for main branch push)
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve -input=false
